@@ -78,6 +78,8 @@ module.exports.start = function (callback) {
 	} else {
 		callback();
 	}
+
+	return this;
 };
 
 
@@ -97,6 +99,7 @@ module.exports.registerHook = function (hookName, hookFn) {
 		hooks[hookName] = [];
 	}
 	hooks[hookName].push(hookFn);
+	return this;
 };
 
 /**
@@ -117,9 +120,6 @@ module.exports.async = function () {
 		throw new Error('missing plugin name!');
 	} else {
 		hookName = args.shift();
-		if (!hooks[hookName]) {
-			return false;
-		}
 	}
 
 	// obtain async callback
@@ -127,6 +127,13 @@ module.exports.async = function () {
 		throw new Error('[' + hookName + '] missing callback for async plugin!');
 	} else {
 		callback = args[args.length - 1];
+	}
+
+	// check for some callbacks existance
+	// [???] may give out an exception when no callbacks were found!
+	if (!hooks[hookName] || !hooks[hookName].length) {
+		callback();
+		return false;
 	}
 
 	// run async in parallel
@@ -141,6 +148,7 @@ module.exports.async = function () {
 		}
 	}, callback);
 
+	return this;
 };
 
 module.exports.asyncSeries = function () {
@@ -154,9 +162,6 @@ module.exports.asyncSeries = function () {
 		throw new Error('missing plugin name!');
 	} else {
 		hookName = args.shift();
-		if (!hooks[hookName]) {
-			return false;
-		}
 	}
 
 	// obtain async callback
@@ -164,6 +169,13 @@ module.exports.asyncSeries = function () {
 		throw new Error('[' + hookName + '] missing callback for async plugin!');
 	} else {
 		callback = args[args.length - 1];
+	}
+
+	// check for some callbacks existance
+	// [???] may give out an exception when no callbacks were found!
+	if (!hooks[hookName] || !hooks[hookName].length) {
+		callback();
+		return false;
 	}
 
 	// run async queque
@@ -181,6 +193,7 @@ module.exports.asyncSeries = function () {
 		}
 	}, callback);
 
+	return this;
 };
 
 
@@ -248,16 +261,17 @@ module.exports.waterfall = function (hookName) {
  * Load a plugin package by folder path
  * @param sourceFolder
  */
-module.exports.registerPackage = function (sourceFolder) {
+module.exports.registerPackage = function (sourceFolder, context) {
 
 	var name = path.basename(sourceFolder),
 		module = require(sourceFolder),
 
 	// obtain package informations and apply some default values
 		pkg = extend({
-			"name": name,
-			"priority": 100
-		}, module());
+			"name" : name,
+			"priority" : 100,
+			"init" : function() {}
+		}, module(context));
 
 	// skip disabled plugins (_plugin)
 	if (name.substring(0, 1) == '_') {
@@ -273,7 +287,7 @@ module.exports.registerPackage = function (sourceFolder) {
  * Load all packages from a given folder path
  * (syncronous)
  */
-module.exports.registerMany = function (sourceFolder) {
+module.exports.registerMany = function (sourceFolder, context) {
 	var self = this;
 
 	if (fs.existsSync(sourceFolder)) {
@@ -282,7 +296,7 @@ module.exports.registerMany = function (sourceFolder) {
 				itemStat = fs.lstatSync(itemPath);
 
 			if (itemStat.isDirectory()) {
-				self.registerPackage(itemPath);
+				self.registerPackage(itemPath, context);
 			}
 		});
 	}
