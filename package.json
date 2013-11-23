@@ -1,0 +1,39 @@
+{
+  "name": "polite-plugin-manager",
+  "version": "0.0.1",
+  "description": "Stuning plugin manager for NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt specs"
+  },
+  "keywords": [
+    "plugin",
+    "plugins",
+    "extension",
+    "extensibility"
+  ],
+	"author": {
+		"name": "Marco Pegoraro",
+		"url": "http://movableapp.com"
+	},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PoliteJS/polite-plugin-manager"
+  },
+	"licenses": [
+		{
+			"type": "MIT"
+		}
+	],
+  "dependencies": {
+    "extend": "~1.2.1",
+    "async": "~0.2.9"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-mocha-chai-sinon": "0.0.7",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-open": "~0.2.2"
+  }
+}
