@@ -269,7 +269,7 @@ if (PluginManager.isEmpty('hook-name')) {
  * after execution detection:
  */
 var hasExecutedCallbacks = PluginManager.run('foo', function(err) {
-    if (err === valse) {
+    if (err === false) {
         // no callbacks were executed
     }
 });
