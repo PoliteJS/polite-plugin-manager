@@ -14,7 +14,10 @@ var fs = require('fs'),
 // Local Modules
 	AsyncCtx = require('./libs/async-ctx'),
 	WaterfallCtx = require('./libs/waterfall-ctx'),
-	BreakException = require('./libs/break-exception');
+	WaterfallBreakException = require('./errors/waterfall-break-exception'),
+
+	PluginNameError = require('./errors/plugin-name-error'),
+	PluginCallbackError = require('./errors/plugin-callback-error');
 
 
 // ------------------------------------------------------------------------------------ //
@@ -117,14 +120,14 @@ module.exports.async = function () {
 
 	// collect hookName property
 	if (!args.length) {
-		throw new Error('missing plugin name!');
+		throw new PluginNameError('missing plugin name!');
 	} else {
 		hookName = args.shift();
 	}
 
 	// obtain async callback
 	if (!args.length || typeof args[args.length - 1] !== 'function') {
-		throw new Error('[' + hookName + '] missing callback for async plugin!');
+		throw new PluginCallbackError('[' + hookName + '] missing callback for async plugin!');
 	} else {
 		callback = args[args.length - 1];
 	}
@@ -159,14 +162,14 @@ module.exports.asyncSeries = function () {
 
 	// collect hookName property
 	if (!args.length) {
-		throw new Error('missing plugin name!');
+		throw new PluginNameError('missing plugin name!');
 	} else {
 		hookName = args.shift();
 	}
 
 	// obtain async callback
 	if (!args.length || typeof args[args.length - 1] !== 'function') {
-		throw new Error('[' + hookName + '] missing callback for async plugin!');
+		throw new PluginCallbackError('[' + hookName + '] missing callback for async plugin!');
 	} else {
 		callback = args[args.length - 1];
 	}
@@ -208,7 +211,7 @@ module.exports.asyncSeries = function () {
 module.exports.waterfall = function (hookName) {
 
 	if (!hookName) {
-		throw new Error('missing plugin name!');
+		throw new PluginNameError('missing plugin name!');
 	}
 
 	var args = Array.prototype.slice.call(arguments);
@@ -226,12 +229,12 @@ module.exports.waterfall = function (hookName) {
 			}
 
 			if (context.stopped) {
-				throw BreakException;
+				throw WaterfallBreakException;
 			}
 
 		});
 	} catch (e) {
-		if (e !== BreakException) throw e;
+		if (e !== WaterfallBreakException) throw e;
 	}
 
 	if (args.length) {

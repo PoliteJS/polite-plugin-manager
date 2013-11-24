@@ -5,7 +5,7 @@ var PluginManager = require('../src/ppm');
 
 var specsPath = path.resolve(__dirname);
 
-describe('Polite Plugin Manager', function() {
+describe('Core', function() {
 
 	beforeEach(function() {
 		PluginManager.reset();
@@ -84,6 +84,53 @@ describe('Polite Plugin Manager', function() {
 				done();
 			});
 		});
+
+	});
+
+
+	/**
+	 * In this block I test callbacks to be able to prevent
+	 * following plugins to run
+	 */
+	describe('Interrupt Plugins Queue By Callback', function() {
+
+		var context = null;
+
+		beforeEach(function(done) {
+			context = {
+				num: 0,
+				list: [],
+				obj: {}
+			};
+			PluginManager.registerMany(specsPath + '/ppm-fixtures/', context).start(function() {
+				done();
+			});
+		});
+
+		it('ppm.waterfall() should be stoppable', function() {
+			expect(
+				PluginManager.waterfall('testStopWaterfall', 0)
+			).to.equal(1);
+		});
+
+		it('ppm.async() should be stoppable', function(done) {
+			var list = [];
+			PluginManager.async('testStopAsync', list, function() {
+				console.log(list);
+				expect(list.length).to.equal(1);
+				done();
+			});
+		});
+
+		it('ppm.asyncSeries() should be stoppable', function(done) {
+			var list = [];
+			PluginManager.async('testStopAsyncSeries', list, function() {
+				console.log(list);
+				expect(list.length).to.equal(1);
+				done();
+			});
+		});
+
 
 	});
 

@@ -26,6 +26,28 @@ module.exports = function(context) {
 
 		series1: function() {
 			context.list.push('plugin01');
+		},
+
+
+		/**
+		 * Test Stoppable Behavior
+		 */
+
+		testStopWaterfall: function(num) {
+			return num + 1;
+		},
+
+		testStopAsync: function(list) {
+			var done = this.async();
+			setTimeout(function() {
+				list.push('plugin01');
+				done(true);
+			}, 0);
+		},
+
+		testStopAsyncSeries: function(list) {
+			list.push('plugin01');
+			this.stop();
 		}
 
 

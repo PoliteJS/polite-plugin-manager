@@ -13,4 +13,16 @@ AsyncCtx.prototype.async = function() {
 	return this.callback;
 };
 
+/**
+ * This is an API meant to be used only from synchronous
+ * callbacks into an asynchronous like hook.
+ *
+ * it represent continuity from the "sync()" or "waterfall()"
+ * plugin management
+ */
+AsyncCtx.prototype.stop = function() {
+	var callback = this.async();
+	callback(true);
+};
+
 module.exports = AsyncCtx;
