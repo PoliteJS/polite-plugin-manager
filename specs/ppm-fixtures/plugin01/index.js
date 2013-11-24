@@ -24,8 +24,8 @@ module.exports = function(context) {
 		},
 
 
-		series1: function() {
-			context.list.push('plugin01');
+		series1: function(list) {
+			list.push('plugin01');
 		},
 
 

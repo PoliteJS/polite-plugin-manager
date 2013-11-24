@@ -5,8 +5,8 @@ var PluginManager = require('../src/ppm'),
 
 describe('Custom Errors', function() {
 
-	beforeEach(function() {
-		PluginManager.reset();
+	beforeEach(function(done) {
+		PluginManager.reset().start(done);
 	});
 
 	describe('PluginNameError', function() {
@@ -17,15 +17,15 @@ describe('Custom Errors', function() {
 			).to.throw(PluginNameError);
 		});
 
-		it('ppm.async() throw a PluginNameError if no args', function() {
+		it('ppm.parallel() throw a PluginNameError if no args', function() {
 			expect(
-				PluginManager.async
+				PluginManager.parallel
 			).to.throw(PluginNameError);
 		});
 
-		it('ppm.asyncSeries() throw a PluginNameError if no args', function() {
+		it('ppm.run() throw a PluginNameError if no args', function() {
 			expect(
-				PluginManager.asyncSeries
+				PluginManager.run
 			).to.throw(PluginNameError);
 		});
 
@@ -34,27 +34,27 @@ describe('Custom Errors', function() {
 
 	describe('PluginCallbackError', function() {
 
-		it('ppm.async() throw a PluginCallbackError if no callback was given', function() {
+		it('ppm.parallel() throw a PluginCallbackError if no callback was given', function() {
 			expect(function() {
-				PluginManager.async('foo');
+				PluginManager.parallel('foo');
 			}).to.throw(PluginCallbackError);
 		});
 
-		it('ppm.async() throw a PluginCallbackError if no VALID callback was given', function() {
+		it('ppm.parallel() throw a PluginCallbackError if no VALID callback was given', function() {
 			expect(function() {
-				PluginManager.async('foo', 'thisIsNotACallback');
+				PluginManager.parallel('foo', 'thisIsNotACallback');
 			}).to.throw(PluginCallbackError);
 		});
 
-		it('ppm.asyncSeries() throw a PluginCallbackError if no callback was given', function() {
+		it('ppm.run() throw a PluginCallbackError if no callback was given', function() {
 			expect(function() {
-				PluginManager.asyncSeries('foo');
+				PluginManager.run('foo');
 			}).to.throw(PluginCallbackError);
 		});
 
-		it('ppm.asyncSeries() throw a PluginCallbackError if no VALID callback was given', function() {
+		it('ppm.run() throw a PluginCallbackError if no VALID callback was given', function() {
 			expect(function() {
-				PluginManager.asyncSeries('foo', 'thisIsNotACallback');
+				PluginManager.run('foo', 'thisIsNotACallback');
 			}).to.throw(PluginCallbackError);
 		});
 

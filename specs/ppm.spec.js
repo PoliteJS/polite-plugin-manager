@@ -11,7 +11,7 @@ describe('Core', function() {
 		PluginManager.reset();
 	});
 
-	describe('Register Plugins', function() {
+	describe('Registering Plugins', function() {
 
 		it('should register a single hook', function() {
 			expect(
@@ -28,56 +28,50 @@ describe('Core', function() {
 	});
 
 
-	describe('Run Plugins', function() {
+	describe('Initializing Plugins', function() {
 
-		var context = null;
-
-		beforeEach(function() {
-			context = {
-				num: 0,
-				list: [],
-				obj: {}
-			};
-			PluginManager.registerMany(specsPath + '/ppm-fixtures/', context);
+		beforeEach(function(done) {
+			PluginManager.registerMany(specsPath + '/ppm-fixtures/', context).start(done);
 		});
 
-		it('should have run SYNC initialization', function(done) {
-			PluginManager.start(function() {
-				expect(context).to.have.property('init1');
-				done();
-			});
+		it('should have run SYNC initialization', function() {
+			expect(context).to.have.property('init1');
 		});
 
-		it('should have run ASYNC initialization', function(done) {
-			PluginManager.start(function() {
-				expect(context).to.have.property('init2');
-				done();
-			});
+		it('should have run ASYNC initialization', function() {
+			expect(context).to.have.property('init2');
+		});
+
+	});
+
+
+	describe('Running Plugins', function() {
+
+		beforeEach(function(done) {
+			PluginManager.registerMany(specsPath + '/ppm-fixtures/').start(done);
 		});
 
 		/**
 		 * waterfall test that every involved callbacks return their
 		 * first param so its value will preserved to the outcome
 		 */
-		it('should run waterfall logic', function(done) {
-			PluginManager.start(function() {
-				expect(
-					PluginManager.waterfall('foo1', 5)
-				).to.equal(5);
+		it('should run waterfall logic', function() {
+			expect(
+				PluginManager.waterfall('foo1', 5)
+			).to.equal(5);
+		});
+
+
+		it('parallel() should run asynchronous series callbacks logic', function(done) {
+			PluginManager.parallel('async1', function() {
 				done();
 			});
 		});
 
-
-		it('should run asynchronous parallel callbacks logic', function(done) {
-			PluginManager.start().async('async1', function() {
-				done();
-			});
-		});
-
-		it('should run synchronous serialized scallbacks logic', function(done) {
-			PluginManager.start().asyncSeries('series1', function() {
-				expect(context.list).to.deep.equal([
+		it('run() should run synchronous serialized callbacks logic', function(done) {
+			var list = [];
+			PluginManager.run('series1', list, function() {
+				expect(list).to.deep.equal([
 					'plugin02',
 					'plugin01'
 				]);
@@ -94,17 +88,8 @@ describe('Core', function() {
 	 */
 	describe('Interrupt Plugins Queue By Callback', function() {
 
-		var context = null;
-
 		beforeEach(function(done) {
-			context = {
-				num: 0,
-				list: [],
-				obj: {}
-			};
-			PluginManager.registerMany(specsPath + '/ppm-fixtures/', context).start(function() {
-				done();
-			});
+			PluginManager.registerMany(specsPath + '/ppm-fixtures/').start(done);
 		});
 
 		it('ppm.waterfall() should be stoppable', function() {
@@ -115,8 +100,7 @@ describe('Core', function() {
 
 		it('ppm.async() should be stoppable', function(done) {
 			var list = [];
-			PluginManager.async('testStopAsync', list, function() {
-				console.log(list);
+			PluginManager.parallel('testStopAsync', list, function() {
 				expect(list.length).to.equal(1);
 				done();
 			});
@@ -124,13 +108,11 @@ describe('Core', function() {
 
 		it('ppm.asyncSeries() should be stoppable', function(done) {
 			var list = [];
-			PluginManager.async('testStopAsyncSeries', list, function() {
-				console.log(list);
+			PluginManager.run('testStopAsyncSeries', list, function() {
 				expect(list.length).to.equal(1);
 				done();
 			});
 		});
-
 
 	});
 

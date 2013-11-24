@@ -30,6 +30,7 @@ var packages = [],
 module.exports.reset = function () {
 	packages = [];
 	hooks = {};
+	return this;
 };
 
 /**
@@ -105,56 +106,12 @@ module.exports.registerHook = function (hookName, hookFn) {
 	return this;
 };
 
+
 /**
- * Run registered hooks callbacks in series
- * - should  contain arguments for the hook
- * - last argument MUST be the end callback
- * @param hookName
+ * Run registered hook callbacks in series
+ * (it supports asynchronous callbacks)
  */
-
-module.exports.async = function () {
-
-	var hookName = '',
-		callback = null,
-		args = Array.prototype.slice.call(arguments);
-
-	// collect hookName property
-	if (!args.length) {
-		throw new PluginNameError('missing plugin name!');
-	} else {
-		hookName = args.shift();
-	}
-
-	// obtain async callback
-	if (!args.length || typeof args[args.length - 1] !== 'function') {
-		throw new PluginCallbackError('[' + hookName + '] missing callback for async plugin!');
-	} else {
-		callback = args[args.length - 1];
-	}
-
-	// check for some callbacks existance
-	// [???] may give out an exception when no callbacks were found!
-	if (!hooks[hookName] || !hooks[hookName].length) {
-		callback();
-		return false;
-	}
-
-	// run async in parallel
-	// NOTE: a step function should stop the queque by done(true)
-	async.each(hooks[hookName], function (fn, done) {
-		var context = new AsyncCtx(done),
-			result = fn.apply(context, args);
-
-		// handle sync callbacks
-		if (context.sync) {
-			done(result);
-		}
-	}, callback);
-
-	return this;
-};
-
-module.exports.asyncSeries = function () {
+module.exports.run = function () {
 
 	var hookName = '',
 		callback = null,
@@ -199,11 +156,57 @@ module.exports.asyncSeries = function () {
 	return this;
 };
 
+/**
+ * Run registered hook callbacks in parallel
+ * (it supports asynchronous callbacks)
+ * @param hookName
+ */
 
+module.exports.parallel = function () {
+
+	var hookName = '',
+		callback = null,
+		args = Array.prototype.slice.call(arguments);
+
+	// collect hookName property
+	if (!args.length) {
+		throw new PluginNameError('missing plugin name!');
+	} else {
+		hookName = args.shift();
+	}
+
+	// obtain async callback
+	if (!args.length || typeof args[args.length - 1] !== 'function') {
+		throw new PluginCallbackError('[' + hookName + '] missing callback for async plugin!');
+	} else {
+		callback = args[args.length - 1];
+	}
+
+	// check for some callbacks existance
+	// [???] may give out an exception when no callbacks were found!
+	if (!hooks[hookName] || !hooks[hookName].length) {
+		callback();
+		return false;
+	}
+
+	// run async in parallel
+	// NOTE: a step function should stop the queque by done(true)
+	async.each(hooks[hookName], function (fn, done) {
+		var context = new AsyncCtx(done),
+			result = fn.apply(context, args);
+
+		// handle sync callbacks
+		if (context.sync) {
+			done(result);
+		}
+	}, callback);
+
+	return this;
+};
 
 
 /**
- * WATERFALL MODE
+ * WATERFALL
  * Run a hook as a normal function in a fully syncronous mode
  * Each hookFn should return a value who's forward as first argument for the next one
  * last hookFn return value is the final output
@@ -274,7 +277,7 @@ module.exports.registerPackage = function (sourceFolder, context) {
 			"name" : name,
 			"priority" : 100,
 			"init" : function() {}
-		}, module(context));
+		}, module(context || {}));
 
 	// skip disabled plugins (_plugin)
 	if (name.substring(0, 1) == '_') {

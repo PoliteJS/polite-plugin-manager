@@ -29,10 +29,10 @@ module.exports = function(context) {
 			}, 0);
 		},
 
-		series1: function() {
+		series1: function(list) {
 			var done = this.async();
 			setTimeout(function() {
-				context.list.push('plugin02');
+				list.push('plugin02');
 				done();
 			}, 0);
 		},
