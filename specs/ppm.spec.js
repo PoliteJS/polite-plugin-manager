@@ -11,7 +11,14 @@ describe('Core', function() {
 		PluginManager.reset();
 	});
 
-	describe('Registering Plugins', function() {
+
+
+
+// ----------------------------------------------------- //
+// ---[[   R E G I S T E R I N G   P L U G I N S   ]]--- //
+// ----------------------------------------------------- //
+
+	describe('Register Plugins', function() {
 
 		it('should register a single hook', function() {
 			expect(
@@ -28,7 +35,15 @@ describe('Core', function() {
 	});
 
 
-	describe('Initializing Plugins', function() {
+
+
+
+
+// --------------------------------------------------------- //
+// ---[[   P L U G I N   I N I T I A L I Z A T I O N   ]]--- //
+// --------------------------------------------------------- //
+
+	describe('Initialize Plugins', function() {
 
 		beforeEach(function(done) {
 			PluginManager.registerMany(specsPath + '/ppm-fixtures/', context).start(done);
@@ -45,7 +60,123 @@ describe('Core', function() {
 	});
 
 
-	describe('Running Plugins', function() {
+
+
+
+// ------------------------- //
+// ---[[   R U N ( )   ]]--- //
+// ------------------------- //
+
+	describe('run()', function() {
+
+		beforeEach(function(done) {
+			PluginManager.registerMany(specsPath + '/ppm-fixtures/').start(done);
+		});
+
+		it('run() should run synchronous serialized callbacks logic', function(done) {
+			var list = [];
+			PluginManager.run('run01', list, function() {
+				expect(list).to.deep.equal([
+					'plugin02',
+					'plugin01'
+				]);
+				done();
+			});
+		});
+
+		it('should handle empty hooks', function(done) {
+			PluginManager.run('emptyHook', function(err) {
+				expect(err).to.be.false;
+				done();
+			});
+		});
+
+		it('should return FALSE on empty hooks', function() {
+			expect(
+				PluginManager.run('emptyHook', function() {})
+			).to.be.false;
+		});
+
+		it('should be stoppable', function(done) {
+			var list = [];
+			PluginManager.run('stoppableRun', list, function() {
+				expect(list.length).to.equal(1);
+				done();
+			});
+		});
+
+		it('callback\'s param should be true when stopped', function(done) {
+			PluginManager.run('stoppableRun', [], function(err) {
+				expect(err).to.be.true;
+				done();
+			});
+		});
+
+	});
+
+
+
+
+
+
+
+
+// ---------------------------------- //
+// --[[   P A R A L L E L ( )   ]]--- //
+// ---------------------------------- //
+
+	describe('parallel()', function() {
+
+		beforeEach(function(done) {
+			PluginManager.registerMany(specsPath + '/ppm-fixtures/').start(done);
+		});
+
+		it('parallel() should run asynchronous series callbacks logic', function(done) {
+			PluginManager.parallel('parallel01', function() {
+				done();
+			});
+		});
+
+		it('should handle empty hooks', function(done) {
+			PluginManager.parallel('emptyHook', function(err) {
+				expect(err).to.be.false;
+				done();
+			});
+		});
+
+		it('should return FALSE on empty hooks', function() {
+			expect(
+				PluginManager.parallel('emptyHook', function() {})
+			).to.be.false;
+		});
+
+		it('should be stoppable', function(done) {
+			var list = [];
+			PluginManager.parallel('stoppableParallel', list, function() {
+				expect(list.length).to.equal(1);
+				done();
+			});
+		});
+
+		it('callback\'s param should be true when stopped', function(done) {
+			PluginManager.parallel('stoppableParallel', [], function(err) {
+				expect(err).to.be.true;
+				done();
+			});
+		});
+
+	});
+
+
+
+
+
+
+// ------------------------------------- //
+// ---[[   W A T E R F A L L ( )   ]]--- //
+// ------------------------------------- //
+
+	describe('waterfall()', function() {
 
 		beforeEach(function(done) {
 			PluginManager.registerMany(specsPath + '/ppm-fixtures/').start(done);
@@ -57,64 +188,24 @@ describe('Core', function() {
 		 */
 		it('should run waterfall logic', function() {
 			expect(
-				PluginManager.waterfall('foo1', 5)
-			).to.equal(5);
+				PluginManager.waterfall('waterfall01', 5)
+			).to.equal(7);
 		});
 
-
-		it('parallel() should run asynchronous series callbacks logic', function(done) {
-			PluginManager.parallel('async1', function() {
-				done();
-			});
-		});
-
-		it('run() should run synchronous serialized callbacks logic', function(done) {
-			var list = [];
-			PluginManager.run('series1', list, function() {
-				expect(list).to.deep.equal([
-					'plugin02',
-					'plugin01'
-				]);
-				done();
-			});
-		});
-
-	});
-
-
-	/**
-	 * In this block I test callbacks to be able to prevent
-	 * following plugins to run
-	 */
-	describe('Interrupt Plugins Queue By Callback', function() {
-
-		beforeEach(function(done) {
-			PluginManager.registerMany(specsPath + '/ppm-fixtures/').start(done);
-		});
-
-		it('ppm.waterfall() should be stoppable', function() {
+		it('should be stoppable', function() {
 			expect(
-				PluginManager.waterfall('testStopWaterfall', 0)
+				PluginManager.waterfall('stoppableWaterfall', 0)
 			).to.equal(1);
 		});
 
-		it('ppm.async() should be stoppable', function(done) {
-			var list = [];
-			PluginManager.parallel('testStopAsync', list, function() {
-				expect(list.length).to.equal(1);
-				done();
-			});
-		});
-
-		it('ppm.asyncSeries() should be stoppable', function(done) {
-			var list = [];
-			PluginManager.run('testStopAsyncSeries', list, function() {
-				expect(list.length).to.equal(1);
-				done();
-			});
+		it('should run with empty hook', function() {
+			expect(
+				PluginManager.waterfall('emptyHook', 10)
+			).to.equal(10);
 		});
 
 	});
 
-
 });
+
+

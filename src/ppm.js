@@ -14,8 +14,6 @@ var fs = require('fs'),
 // Local Modules
 	AsyncCtx = require('./libs/async-ctx'),
 	WaterfallCtx = require('./libs/waterfall-ctx'),
-	WaterfallBreakException = require('./errors/waterfall-break-exception'),
-
 	PluginNameError = require('./errors/plugin-name-error'),
 	PluginCallbackError = require('./errors/plugin-callback-error');
 
@@ -107,6 +105,16 @@ module.exports.registerHook = function (hookName, hookFn) {
 };
 
 
+module.exports.isEmpty = function(hookName) {
+	if (hooks[hookName] && hooks[hookName].length) {
+		return false;
+	} else {
+		return true;
+	}
+};
+
+
+
 /**
  * Run registered hook callbacks in series
  * (it supports asynchronous callbacks)
@@ -134,7 +142,7 @@ module.exports.run = function () {
 	// check for some callbacks existance
 	// [???] may give out an exception when no callbacks were found!
 	if (!hooks[hookName] || !hooks[hookName].length) {
-		callback();
+		callback(false);
 		return false;
 	}
 
@@ -153,7 +161,7 @@ module.exports.run = function () {
 		}
 	}, callback);
 
-	return this;
+	return true;
 };
 
 /**
@@ -185,7 +193,7 @@ module.exports.parallel = function () {
 	// check for some callbacks existance
 	// [???] may give out an exception when no callbacks were found!
 	if (!hooks[hookName] || !hooks[hookName].length) {
-		callback();
+		callback(false);
 		return false;
 	}
 
@@ -201,7 +209,7 @@ module.exports.parallel = function () {
 		}
 	}, callback);
 
-	return this;
+	return true;
 };
 
 
@@ -220,24 +228,27 @@ module.exports.waterfall = function (hookName) {
 	var args = Array.prototype.slice.call(arguments);
 	args.shift();
 
-	// use known exception to exit forEach cycle
-	// (http://stackoverflow.com/questions/2641347/how-to-short-circuit-array-foreach-like-calling-break?answertab=votes#tab-top)
-	try {
-		hooks[hookName].forEach(function (fn) {
-			var context = new WaterfallCtx(),
-				result = fn.apply(context, args);
+	if (hooks[hookName]) {
+		// use known exception to exit forEach cycle implementing a stoppable watefall
+		// (http://stackoverflow.com/questions/2641347/how-to-short-circuit-array-foreach-like-calling-break?answertab=votes#tab-top)
+		var WaterfallBreakException = {};
+		try {
+			hooks[hookName].forEach(function (fn) {
+				var context = new WaterfallCtx(),
+					result = fn.apply(context, args);
 
-			if (args.length) {
-				args[0] = result;
-			}
+				if (args.length) {
+					args[0] = result;
+				}
 
-			if (context.stopped) {
-				throw WaterfallBreakException;
-			}
+				if (context.stopped) {
+					throw WaterfallBreakException;
+				}
 
-		});
-	} catch (e) {
-		if (e !== WaterfallBreakException) throw e;
+			});
+		} catch (e) {
+			if (e !== WaterfallBreakException) throw e;
+		}
 	}
 
 	if (args.length) {

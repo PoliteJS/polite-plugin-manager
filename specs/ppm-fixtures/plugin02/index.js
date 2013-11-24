@@ -1,6 +1,11 @@
 /**
  * Test Plugin02
  *
+ *
+ * LOADING ORDER:
+ * even if this plugin folder's name alphabetical order is afet
+ * "plugin01" this package will execute first because of exposed priority
+ *
  */
 module.exports = function(context) {
 	return {
@@ -16,52 +21,58 @@ module.exports = function(context) {
 			}, 0);
 		},
 
-		// should run waterfall logic
-		foo1: function(add) {
-			return add;
+
+
+// ----------------------------------------------- //
+// ---[[   S T A N D A R D   R U N N I N G   ]]--- //
+// ----------------------------------------------- //
+
+		run01: function(list) {
+			var done = this.async();
+			setTimeout(function() {
+				list.push('plugin02');
+				done();
+			}, 0);
 		},
 
 		// async hook running asynchronous callback logic
-		async1: function() {
+		parallel01: function() {
 			var done = this.async();
 			setTimeout(function() {
 				done();
 			}, 0);
 		},
 
-		series1: function(list) {
+		// should run waterfall logic
+		waterfall01: function(add) {
+			return add + 1;
+		},
+
+
+
+// --------------------------------------------------- //
+// ---[[   S T O P P A B L E   B E H A V I O R   ]]--- //
+// --------------------------------------------------- //
+
+		stoppableRun: function(list) {
 			var done = this.async();
 			setTimeout(function() {
 				list.push('plugin02');
-				done();
+				done(true);
 			}, 0);
 		},
 
+		stoppableParallel: function(list) {
+			var done = this.async();
+			setTimeout(function() {
+				list.push('plugin02');
+				done(true);
+			}, 0);
+		},
 
-
-		/**
-		 * Test Stoppable Behavior
-		 */
-
-		testStopWaterfall: function(num) {
+		stoppableWaterfall: function(num) {
 			this.stop();
 			return num + 1;
-		},
-
-		testStopAsync: function(list) {
-			var done = this.async();
-			setTimeout(function() {
-				list.push('plugin02');
-				done(true);
-			}, 0);
-		},
-
-		testStopAsyncSeries: function(list) {
-			var done = this.async();
-			setTimeout(function() {
-				list.push('plugin02');
-				done(true);
-			}, 0);
 		}
 
 	};

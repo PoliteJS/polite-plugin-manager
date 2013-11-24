@@ -1,6 +1,6 @@
 {
   "name": "polite-plugin-manager",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Stuning plugin manager for NodeJS",
   "main": "index.js",
   "scripts": {
