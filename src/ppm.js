@@ -38,7 +38,8 @@ module.exports.reset = function () {
  */
 module.exports.start = function (callback) {
 
-	var inits = [],
+	var self = this,
+		inits = [],
 		skipProps = ['name', 'priority', 'init'];
 
 	// sort by priorities
@@ -70,15 +71,15 @@ module.exports.start = function (callback) {
 			// sync false stop initialization cycle!
 			if (context.sync) {
 				if (result === false) {
-					callback();
+					callback.call(self);
 				} else {
 					done(result);
 				}
 			}
 
-		}, callback);
+		}, callback.bind(this));
 	} else {
-		callback();
+		callback.call(self);
 	}
 
 	return this;

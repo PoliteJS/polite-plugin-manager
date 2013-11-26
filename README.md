@@ -20,6 +20,17 @@ I've also added a really fine grained control on:
 
 ### What's Next
 
+I want single package hook to expose it's priority:
+
+```
+hook1: function() {},
+
+hook2: {
+    priority: 2000,
+    method: function() {}
+}
+```
+
 I want to better explore _plugins package organization_ to let a plugin package to spread on multiple files.
 
 I also want to explore **in-plugin package test support** to let every plugin to be fully testable before it's release.
